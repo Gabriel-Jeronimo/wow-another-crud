@@ -4,6 +4,7 @@ package com.example.wow_another_crud.controller;
 import com.example.wow_another_crud.exceptions.TaskNotFoundException;
 import com.example.wow_another_crud.model.Task;
 import com.example.wow_another_crud.repository.TaskRepository;
+import com.example.wow_another_crud.service.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,42 +16,35 @@ import java.util.Optional;
 @RequestMapping("/api/tasks")
 public class TaskController {
 
-    private final TaskRepository taskRepository;
+    private final TaskService taskService;
 
-    TaskController(TaskRepository taskRepository) {
-        this.taskRepository = taskRepository;
+    TaskController(TaskService taskService) {
+        this.taskService = taskService;
     }
 
     @PostMapping
     ResponseEntity<Task> createTask(@RequestBody Task task) {
-        this.taskRepository.save(task);
-        return new ResponseEntity<>(task, HttpStatus.CREATED);
+        return new ResponseEntity<>(this.taskService.createTask(task), HttpStatus.CREATED);
     }
 
     @GetMapping
     ResponseEntity<List<Task>> getTasks() {
-        return ResponseEntity.ok(this.taskRepository.findAll());
+        return ResponseEntity.ok(this.taskService.getTasks());
     }
 
     @GetMapping("/{id}")
     ResponseEntity<Task> getTaskById(@PathVariable Long id) {
-        Optional<Task> task = taskRepository.findById(id.intValue());
-        return ResponseEntity.ok(task.orElseThrow(() -> new TaskNotFoundException(id)));
+        return ResponseEntity.ok(taskService.getTaskById(id));
     }
 
     @PutMapping("/{id}")
     ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task body) {
-        return taskRepository.findById(id.intValue()).map(task -> {
-            task.setName(body.getName());
-            task.setDescription(body.getDescription());
-            task.setStatus(body.getStatus());
-            return ResponseEntity.ok(taskRepository.save(task));
-        }).orElseThrow(() -> new TaskNotFoundException(id));
+        return ResponseEntity.ok(this.taskService.updateTask(id, body));
     }
 
     @DeleteMapping("/{id}")
     ResponseEntity<Void> deleteTask(@PathVariable Long id) {
-        taskRepository.deleteById(id.intValue());
+        taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
     }
 }
