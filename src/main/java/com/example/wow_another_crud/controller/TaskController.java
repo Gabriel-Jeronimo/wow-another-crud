@@ -1,21 +1,17 @@
 package com.example.wow_another_crud.controller;
 
 
-import com.example.wow_another_crud.exceptions.TaskNotFoundException;
 import com.example.wow_another_crud.model.Task;
-import com.example.wow_another_crud.repository.TaskRepository;
 import com.example.wow_another_crud.service.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/tasks")
 public class TaskController {
-
     private final TaskService taskService;
 
     TaskController(TaskService taskService) {
