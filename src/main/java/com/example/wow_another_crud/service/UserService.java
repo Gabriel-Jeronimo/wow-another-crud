@@ -33,11 +33,13 @@ public class UserService {
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginUserDto.email(), loginUserDto.password());
         System.out.println(loginUserDto);
 
-        Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
-        System.out.println(authentication.isAuthenticated());
+            Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+            System.out.println(authentication.isAuthenticated());
 
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        return new RecoveryJwtTokenDto(jwtTokenService.generateToken(userDetails));
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            return new RecoveryJwtTokenDto(jwtTokenService.generateToken(userDetails));
+
+
     }
 
     public void createUser(CreateUserDto createUserDto) {
