@@ -46,10 +46,10 @@ public class JwtTokenService {
     }
 
     private Instant creationDate() {
-        return ZonedDateTime.now(ZoneId.of("America")).toInstant();
+        return ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).toInstant();
     }
 
     private Instant expirationDate() {
-        return ZonedDateTime.now(ZoneId.of("America")).plusMinutes(10).toInstant();
+        return ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).plusMinutes(10).toInstant();
     }
 }
