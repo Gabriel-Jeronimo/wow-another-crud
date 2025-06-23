@@ -29,17 +29,15 @@ public class UserService {
     private SecurityConfig securityConfig;
 
     public RecoveryJwtTokenDto authenticateUser(LoginUserDto loginUserDto) {
-
-        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginUserDto.email(), loginUserDto.password());
-        System.out.println(loginUserDto);
-
+        try {
+            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginUserDto.email(), loginUserDto.password());
             Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
-            System.out.println(authentication.isAuthenticated());
-
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             return new RecoveryJwtTokenDto(jwtTokenService.generateToken(userDetails));
-
-
+        } catch (Exception e) {
+            System.out.println(e);
+            throw e;
+        }
     }
 
     public void createUser(CreateUserDto createUserDto) {

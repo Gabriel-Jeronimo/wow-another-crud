@@ -16,13 +16,11 @@ public class User {
 
     private String password;
 
+    protected User() {}
+
     public User(String email, String password) {
         this.email = email;
         this.password = password;
-    }
-
-    public User() {
-
     }
 
     public UUID getId() {
