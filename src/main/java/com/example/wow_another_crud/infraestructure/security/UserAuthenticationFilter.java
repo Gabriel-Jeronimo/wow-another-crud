@@ -3,6 +3,7 @@ package com.example.wow_another_crud.infraestructure.security;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.example.wow_another_crud.config.SecurityConfig;
 import com.example.wow_another_crud.exceptions.TokenIsAbsent;
+import com.example.wow_another_crud.exceptions.UserNotFoundException;
 import com.example.wow_another_crud.model.User;
 import com.example.wow_another_crud.model.UserDetailsImpl;
 import com.example.wow_another_crud.repository.UserRepository;
@@ -11,6 +12,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,11 +40,12 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
                 String token = recoveryToken(request);
                 if (token != null) {
                     String subject = jwtTokenService.getSubjectFromToken(token);
-                    User user = userRepository.findByEmail(subject).get();
+                    User user = userRepository.findByEmail(subject).orElseThrow(UserNotFoundException::new);
 
                     UserDetailsImpl userDetails = new UserDetailsImpl(user);
 
                     // Q: What is authorities in a JWT authentication context?
+                    // A: Roles, groups or permissions from the account. Used to manage access control to resources.
                     Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 } else {
@@ -55,9 +58,13 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
             sendHttp(request, response, HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: No token provided. Please include your authentication token.");
         } catch (JWTVerificationException ex) {
             sendHttp(request, response, HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: Provided token is invalid or expired. Please provide a valid token.");
+        } catch (BadCredentialsException ex) {
+            sendHttp(request, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Eita.");
         } catch (Exception ex) {
-            sendHttp(request, response, HttpServletResponse.SC_UNAUTHORIZED, "An unexpected error occurred while processing your request.");
+            sendHttp(request, response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An unexpected error occurred while processing your request.");
         }
+
+
     }
 
     private String recoveryToken(HttpServletRequest request) {

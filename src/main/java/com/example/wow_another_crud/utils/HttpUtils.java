@@ -15,6 +15,7 @@ public class HttpUtils {
         var errorResponse = new ErrorResponse(statusCode, errorMessage, request.getRequestURI());
         response.setStatus(statusCode);
         response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json");
         objectMapper.writeValue(response.getWriter(), errorResponse);
     }
 }
