@@ -6,6 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.example.wow_another_crud.model.UserDetailsImpl;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -14,9 +15,18 @@ import java.time.ZonedDateTime;
 
 @Service
 public class JwtTokenService {
-    // TODO: Fix this. Use configuration (?)
-    private static final String SECRET_KEY = "uh... this should be a .env";
-    private static final String ISSUER = "wow-another-crud";
+
+    @Value("${jwt.secret_key}")
+    private String SECRET_KEY;
+
+    @Value("${jwt.issuer}")
+    private String ISSUER;
+
+    @Value("${timezone}")
+    private String TIMEZONE;
+
+    @Value("${jwt.expirationInMinutes}")
+    private long EXPIRATION_IN_MINUTES;
 
     public String generateToken(UserDetailsImpl user) {
         try {
@@ -41,15 +51,15 @@ public class JwtTokenService {
                     .verify(token)
                     .getSubject();
         } catch (JWTVerificationException exception) {
-            throw new JWTVerificationException("Token inválido ou expirado");
+            throw new JWTVerificationException("Autenticação falhou");
         }
     }
 
     private Instant creationDate() {
-        return ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).toInstant();
+        return ZonedDateTime.now(ZoneId.of(TIMEZONE)).toInstant();
     }
 
     private Instant expirationDate() {
-        return ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).plusMinutes(10).toInstant();
+        return ZonedDateTime.now(ZoneId.of(TIMEZONE)).plusMinutes(EXPIRATION_IN_MINUTES).toInstant();
     }
 }

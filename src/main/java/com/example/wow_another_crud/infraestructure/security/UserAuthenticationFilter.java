@@ -1,5 +1,6 @@
 package com.example.wow_another_crud.infraestructure.security;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.example.wow_another_crud.config.SecurityConfig;
 import com.example.wow_another_crud.exceptions.TokenIsAbsent;
 import com.example.wow_another_crud.model.User;
@@ -20,6 +21,8 @@ import java.io.IOException;
 import java.net.Authenticator;
 import java.util.Arrays;
 
+import static com.example.wow_another_crud.utils.HttpUtils.sendHttp;
+
 @Component
 public class UserAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
@@ -30,22 +33,31 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (checkIfEndpointIsNotPublic(request)) {
-            String token = recoveryToken(request);
-            if (token != null) {
-                String subject = jwtTokenService.getSubjectFromToken(token);
-                User user = userRepository.findByEmail(subject).get();
+        try {
+            if (checkIfEndpointIsNotPublic(request)) {
+                String token = recoveryToken(request);
+                if (token != null) {
+                    String subject = jwtTokenService.getSubjectFromToken(token);
+                    User user = userRepository.findByEmail(subject).get();
 
-                UserDetailsImpl userDetails = new UserDetailsImpl(user);
+                    UserDetailsImpl userDetails = new UserDetailsImpl(user);
 
-                // Q: What is authorities in a JWT authentication context?
-                Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                throw new TokenIsAbsent();
+                    // Q: What is authorities in a JWT authentication context?
+                    Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    throw new TokenIsAbsent();
+                }
             }
+            filterChain.doFilter(request, response);
+            // TODO: Make all error messages configurable and localizated.
+        } catch (TokenIsAbsent ex) {
+            sendHttp(request, response, HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: No token provided. Please include your authentication token.");
+        } catch (JWTVerificationException ex) {
+            sendHttp(request, response, HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: Provided token is invalid or expired. Please provide a valid token.");
+        } catch (Exception ex) {
+            sendHttp(request, response, HttpServletResponse.SC_UNAUTHORIZED, "An unexpected error occurred while processing your request.");
         }
-        filterChain.doFilter(request, response);
     }
 
     private String recoveryToken(HttpServletRequest request) {
