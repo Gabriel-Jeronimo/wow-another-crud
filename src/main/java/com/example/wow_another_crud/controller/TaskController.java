@@ -3,12 +3,15 @@ package com.example.wow_another_crud.controller;
 
 import com.example.wow_another_crud.model.Task;
 import com.example.wow_another_crud.service.TaskService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/tasks")
 public class TaskController {
